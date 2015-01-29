@@ -30,16 +30,17 @@ eSNRvec = [3, 4, 5, 6, 7];
 inSNRvec = zeros(100, 5);
 recSNR_cvxVec = zeros(100, 5);
 recSNR_spgl1Vec = zeros(100, 5);
-recSNR_nestVec = zeros(100, 5);
+recSNR_nestaVec = zeros(100, 5);
 cvx_time_vec = zeros(100, 5);
 spgl1_time_vec = zeros(100, 5);
+nesta_time_vec = zeros(100, 5);
 
 
 
 for jj=1:5
 eSNR = eSNRvec(jj);                        % desired SNR of the signal
 
-for iii=1:3
+for iii=1:100
 
 %% generating input signal
 % Sum of  randomly generated sine waves
@@ -276,8 +277,9 @@ spgl1_time = toc();
 
 %% L1 minimization by NESTA          %
 % ==================================%
+tic
 alphaa_nesta = NESTA(A, A.', Y', 3e-3, 0.001);
-
+nesta_time = toc();
 
 
 %% time domain reconstructed signal
@@ -310,9 +312,10 @@ recSNR_nestaVec(iii,jj) = recSNR_nesta;
 
 cvx_time_vec(iii,jj) = cvx_time;
 spgl1_time_vec(iii,jj) = spgl1_time; 
+nesta_time_vec(iii,jj) = nesta_time;
 
 if ~mod(ii, 5)
-save('RD_cvx_spgl1_nesta_test_i5_j5.mat', 'inSNRvec', 'recSNR_cvxVec', 'recSNR_spgl1Vec', 'cvx_time_vec', 'spgl1_time_vec', 'spgl1_time_vec' );
+save('RD_cvx_spgl1_nesta_test_i5_j5.mat', 'inSNRvec', 'recSNR_cvxVec', 'recSNR_spgl1Vec', 'recSNR_nestaVec' ,'cvx_time_vec', 'spgl1_time_vec', 'nesta_time_vec' );
 end
 
 end 
