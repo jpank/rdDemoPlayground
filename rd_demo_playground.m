@@ -26,15 +26,16 @@ t = (0:T:ncycle-T);           % Time vector
 
 % subsampling settings
 subSampling = 3;            % undersampling ratio
-eSNRvec = [3, 4, 5, 6, 7];
+eSNRvec = [30, 40, 50, 60, 70];
 inSNRvec = zeros(100, 5);
 recSNR_cvxVec = zeros(100, 5);
 recSNR_spgl1Vec = zeros(100, 5);
 recSNR_nestaVec = zeros(100, 5);
+recSNR_aihtVec = zeros(100, 5); 
 cvx_time_vec = zeros(100, 5);
 spgl1_time_vec = zeros(100, 5);
 nesta_time_vec = zeros(100, 5);
-
+aiht_time_vec = zeros(100, 5);
 
 
 for jj=1:5
@@ -273,19 +274,30 @@ options = spgSetParms('verbosity', 0);
 alphaa_spgl1 = spg_bpdn( A, Y', 0.001, options);
 %------------------------------------%
 spgl1_time = toc();
+
+
+
 % alphaa_aiht = AIHT(Y, A', length(Y), mTones);
+tic;
+alphaa_aiht = AIHT(transpose(Y), A, size(A,2), mTones);
+aiht_time = toc();
 
 %% L1 minimization by NESTA          %
 % ==================================%
-tic
-alphaa_nesta = NESTA(A, A.', Y', 3e-3, 0.001);
-nesta_time = toc();
+% tic
+% alphaa_nesta = NESTA(A, A.', Y', 3e-3, 0.001);
+% nesta_time = toc();
+% 
+% alphaa_aiht = AIHT(Y,A',length(Y),mTones);
+% 
+% start = make_start_x('CGIHT_Matrix',size(A, 1),size(A, 2),mTones,real(A),Y);
+% alphaa_cgiht = CGIHT_Matrix(size(A, 1),size(A, 2),mTones,real(A),Y,start);
 
 
 %% time domain reconstructed signal
 recSignal = real(invPsi*alphaa)';
 recSignal_spgl1 = real(invPsi*alphaa_spgl1)';
-recSignal_nesta = real(invPsi*alphaa_nesta)';
+recSignal_aiht = real(invPsi*alphaa_aiht)';
 
 %% reconstruction evaluation ( time domain )
 % CVX
@@ -299,23 +311,30 @@ recError_spgl1 = signal - recSignal_spgl1;
 maxError_spgl1 = max(recError_spgl1);
 recSNR_spgl1 = db(var(signal)/var(recError_spgl1), 'power');
 
-%NESTA
-recError_nesta = signal - recSignal_nesta;
-maxError_nesta = max(recError_nesta);
-recSNR_nesta = db(var(signal)/var(recError_nesta), 'power');
+% %NESTA
+% recError_nesta = signal - recSignal_nesta;
+% maxError_nesta = max(recError_nesta);
+% recSNR_nesta = db(var(signal)/var(recError_nesta), 'power');
+% 
+
+%AIHT
+recSNR_aiht = signal - recSignal_aiht;
+maxError_aiht = max(recSNR_aiht);
+recSNR_aiht = db(var(signal)/var(recSNR_aiht), 'power');
 
 inSNRvec(iii, jj) = inSNR;
 recSNR_cvxVec(iii,jj) = recSNR;
 recSNR_spgl1Vec(iii,jj) = recSNR_spgl1;
-recSNR_nestaVec(iii,jj) = recSNR_nesta;
+% recSNR_nestaVec(iii,jj) = recSNR_nesta;
+recSNR_aihtVec(iii, jj) = recSNR_aiht;
 
-
+aiht_time_vec(iii, jj) = aiht_time;
 cvx_time_vec(iii,jj) = cvx_time;
 spgl1_time_vec(iii,jj) = spgl1_time; 
-nesta_time_vec(iii,jj) = nesta_time;
+% nesta_time_vec(iii,jj) = nesta_time;
 
 if ~mod(ii, 5)
-save('RD_cvx_spgl1_nesta_test_i5_j5.mat', 'inSNRvec', 'recSNR_cvxVec', 'recSNR_spgl1Vec', 'recSNR_nestaVec' ,'cvx_time_vec', 'spgl1_time_vec', 'nesta_time_vec' );
+save('RD_cvx_spgl1_nesta_test_i100_j5_mbpr_test_05_02_2015.mat', 'inSNRvec', 'recSNR_cvxVec', 'recSNR_spgl1Vec', 'recSNR_aihtVec' ,'cvx_time_vec', 'spgl1_time_vec', 'aiht_time_vec' );
 end
 
 end 
